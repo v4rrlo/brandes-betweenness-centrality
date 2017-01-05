@@ -187,9 +187,13 @@ void read_input(std::string file_name) {
 void write_results(std::string file_name) {
     std::ofstream output_file;
     output_file.open(file_name);
-
+    std::vector<std::pair<int,int>> result_vertices;
     for (auto v : non_dead_end_vertices) {
-        output_file << read_remapped[v] << " " << betweenness_centrality[v] << std::endl;
+        result_vertices.push_back(std::pair<int,int>(read_remapped[v], betweenness_centrality[v]));
+    }
+    sort(result_vertices.begin(), result_vertices.end());
+    for (auto v : result_vertices) {
+        output_file << v.first << " " << v.second << std::endl;
     }
 
     output_file.close();
