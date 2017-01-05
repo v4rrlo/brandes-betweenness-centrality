@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     read_input(input_file_path);
 
     for (auto v : non_dead_end_vertices) {
-        betweenness_centrality.push_back(0);
+        betweenness_centrality.push_back(0.0);
         vertices_to_process.push(v);
     }
 
