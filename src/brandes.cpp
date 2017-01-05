@@ -142,8 +142,9 @@ void perform_brandes_computing(int node_id, std::unordered_map<int, double> *bet
         int current_node = S.top();
         S.pop();
         for (auto v : predecessors[current_node]) {
-            dependency[v] += (double(number_of_shortest_paths[v]) / number_of_shortest_paths[current_node])
+            double result = (double(number_of_shortest_paths[v]) / number_of_shortest_paths[current_node])
                              * (1.0 + dependency[current_node]);
+            dependency[v] += result;
         }
 
         if (current_node != node_id) {
