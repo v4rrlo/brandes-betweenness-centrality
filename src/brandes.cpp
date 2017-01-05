@@ -63,7 +63,6 @@ int main(int argc, char *argv[]) {
 }
 
 void brandes_algorithm() {
-    //std::unordered_map<int, double> betweenness_centrality_local;
     std::vector<double> betweenness_centrality_local;
 
     for (int i = 0; i < graph.size(); i++) {
@@ -134,7 +133,7 @@ void perform_brandes_computing(int node_id, std::vector<double> *betweenness_cen
         int current_node = S.top();
         S.pop();
         for (auto v : predecessors[current_node]) {
-            double result = ((double)(number_of_shortest_paths[v]) / number_of_shortest_paths[current_node])
+            double result = (double(number_of_shortest_paths[v]) / number_of_shortest_paths[current_node])
                              * (1.0 + dependency[current_node]);
             dependency[v] += result;
         }
@@ -147,11 +146,8 @@ void perform_brandes_computing(int node_id, std::vector<double> *betweenness_cen
 
 
 void read_input(std::string file_name) {
-
-
     std::ifstream input_stream(file_name);
     int v1, v2;
-
     int count = 0;
     while (input_stream >> v1 >> v2) {
         if (remapped_vertices.find(v1) == remapped_vertices.end()) {
