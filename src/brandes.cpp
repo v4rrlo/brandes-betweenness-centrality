@@ -67,7 +67,7 @@ void brandes_algorithm() {
     std::vector<double> betweenness_centrality_local;
 
     for (int i = 0; i < graph.size(); i++) {
-        betweenness_centrality_local[i] = 0;
+        betweenness_centrality_local.push_back(0.0);
     }
 
     while (!vertices_to_process.empty()) {
