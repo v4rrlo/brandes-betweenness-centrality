@@ -63,7 +63,8 @@ int main(int argc, char *argv[]) {
 }
 
 void brandes_algorithm() {
-    std::unordered_map<int, double> betweenness_centrality_local;
+    //std::unordered_map<int, double> betweenness_centrality_local;
+    std::vector<double> betweenness_centrality_local;
 
     for (int i = 0; i < graph.size(); i++) {
         betweenness_centrality_local[i] = 0;
@@ -90,7 +91,7 @@ void brandes_algorithm() {
     }
 }
 
-void perform_brandes_computing(int node_id, std::unordered_map<int, double> *betweenness_centrality_local) {
+void perform_brandes_computing(int node_id, std::vector<double> *betweenness_centrality_local) {
     std::stack<int>                             S;
     std::vector<std::vector<int>> predecessors;
     std::vector<int> number_of_shortest_paths;
