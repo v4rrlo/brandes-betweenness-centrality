@@ -43,8 +43,11 @@ int main(int argc, char *argv[]) {
 
     read_input(input_file_path);
 
-    for (auto v : non_dead_end_vertices) {
+    for (int i = 0; i < graph.size(); i++) {
         betweenness_centrality.push_back(0.0);
+    }
+
+    for (auto v : non_dead_end_vertices) {
         vertices_to_process.push(v);
     }
 
@@ -142,7 +145,7 @@ void perform_brandes_computing(int node_id, std::unordered_map<int, double> *bet
         int current_node = S.top();
         S.pop();
         for (auto v : predecessors[current_node]) {
-            double result = (double(number_of_shortest_paths[v]) / number_of_shortest_paths[current_node])
+            double result = ((double)(number_of_shortest_paths[v]) / number_of_shortest_paths[current_node])
                              * (1.0 + dependency[current_node]);
             dependency[v] += result;
         }
@@ -164,17 +167,19 @@ void read_input(std::string file_name) {
     while (input_stream >> v1 >> v2) {
         if (remapped_vertices.find(v1) == remapped_vertices.end()) {
             graph.emplace_back(std::vector<int>());
+            betweenness_centrality.push_back(0.0);
             read_remapped.push_back(v1);
             remapped_vertices[v1] = count++;
         }
 
         if (remapped_vertices.find(v2) == remapped_vertices.end()) {
-            read_remapped.push_back(v2);
             graph.emplace_back(std::vector<int>());
+            betweenness_centrality.push_back(0.0);
+            read_remapped.push_back(v2);
             remapped_vertices[v2] = count++;
         }
 
-        if (non_dead_end_vertices.find(v1) == non_dead_end_vertices.end()) {
+        if (non_dead_end_vertices.find(remapped_vertices[v1]) == non_dead_end_vertices.end()) {
             non_dead_end_vertices.insert(remapped_vertices[v1]);
         }
 
