@@ -23,11 +23,12 @@ std::queue<int> vertices_to_process;
 
 int main(int argc, char *argv[]) {
     if (argc != 4) {
-        //incorrect number of arguments
+        std::cerr << "Incorrect number of arguments\n"
+                  << "USAGE: ./brandes [number_of_threads] [input_file] [output_file]" << std::endl;
         return 0;
     }
     if (std::atoi(argv[1]) < 1) {
-        //incorrect value of number of threads
+        std::cerr << "Incorrect value of number_number_of_threads. Must be greater than 0" << std::endl;
         return 0;
     }
     threads_count = (unsigned int) std::atoi(argv[1]); //we can safely cast now
@@ -49,7 +50,6 @@ int main(int argc, char *argv[]) {
         t.join();
     }
 
-    //write results to the file
     write_results(output_file_path);
 
     return 0;
