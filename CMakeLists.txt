@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.5.2)
 project(PW_PROJEKT_2)
 find_package ( Threads REQUIRED )
 
