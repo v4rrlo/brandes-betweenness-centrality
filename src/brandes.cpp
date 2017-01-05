@@ -35,7 +35,6 @@ int main(int argc, char *argv[]) {
     std::string input_file_path = argv[2];
     std::string output_file_path = argv[3];
 
-
     read_input(input_file_path);
     for (auto v : non_dead_end_vertices) {
         vertices_to_process.push(v);
@@ -126,9 +125,8 @@ void perform_brandes_computing(int node_id, std::unordered_map<int, double> *bet
         int current_node = S.top();
         S.pop();
         for (auto v : predecessors[current_node]) {
-            double result = (double(number_of_shortest_paths[v]) / number_of_shortest_paths[current_node])
-                            * (1.0 + dependency[current_node]);
-            dependency[v] += result;
+            dependency[v] += (double(number_of_shortest_paths[v]) / number_of_shortest_paths[current_node])
+                             * (1.0 + dependency[current_node]);
         }
 
         if (current_node != node_id) {
@@ -149,22 +147,15 @@ void read_input(std::string file_name) {
         graph[v1].push_back(v2);
         graph[v2];
     }
+
     input_stream.close();
 }
 
 void write_results(std::string file_name) {
     std::ofstream output_file;
     output_file.open(file_name);
-    std::vector<int> result;
 
-    for (auto v : graph) {
-        if (v.second.size() > 0) {
-            result.push_back(v.first);
-        }
-    }
-
-    std::sort(result.begin(), result.end());
-    for (auto v : result) {
+    for (auto v : non_dead_end_vertices) {
         output_file << v << " " << betweenness_centrality[v] << std::endl;
     }
 
