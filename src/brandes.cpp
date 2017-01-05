@@ -22,7 +22,6 @@ std::queue<int> vertices_to_process;
 std::unordered_map<int, int> remapped_vertices;
 std::vector<std::vector<int>> graph;
 std::vector<int> read_remapped;
-int vertices_count = 0;
 
 int main(int argc, char *argv[]) {
     if (argc != 4) {
@@ -35,18 +34,8 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     threads_count = (unsigned int) std::atoi(argv[1]); //we can safely cast now
-    std::string input_file_path = argv[2];
-    std::string output_file_path = argv[3];
 
-    read_input(input_file_path);
-
-    for (int i = 0; i < graph.size(); i++) {
-        betweenness_centrality.push_back(0.0);
-    }
-
-    for (auto v : non_dead_end_vertices) {
-        vertices_to_process.push(v);
-    }
+    read_input(argv[2]);
 
     std::vector<std::thread> threads;
     for (unsigned int i = 0; i < threads_count; i++) {
@@ -57,7 +46,7 @@ int main(int argc, char *argv[]) {
         t.join();
     }
 
-    write_results(output_file_path);
+    write_results(argv[3]);
 
     return 0;
 }
@@ -84,7 +73,7 @@ void brandes_algorithm() {
 
     {
         std::lock_guard<std::mutex> lock(result_update_mutex);
-        for (int i = 0; i < vertices_count; i++) {
+        for (int i = 0; i < graph.size(); i++) {
             betweenness_centrality[i] += betweenness_centrality_local[i];
         }
     }
@@ -97,7 +86,7 @@ void perform_brandes_computing(int node_id, std::vector<double> *betweenness_cen
     std::vector<int> distance_to;
     std::vector<double> dependency;
 
-    for (int i = 0; i < vertices_count; i++) {
+    for (int i = 0; i < graph.size(); i++) {
         predecessors.emplace_back(std::vector<int>());
         number_of_shortest_paths.push_back(0);
         distance_to.push_back(-1);
@@ -143,32 +132,30 @@ void perform_brandes_computing(int node_id, std::vector<double> *betweenness_cen
         }
     }
 }
-
+void handle_vertex(int vertex, int *count) {
+    if (remapped_vertices.find(vertex) == remapped_vertices.end()) {
+        graph.emplace_back(std::vector<int>());
+        read_remapped.push_back(vertex);
+        betweenness_centrality.push_back(0.0);
+        remapped_vertices[vertex] = (*count)++;
+    }
+}
 
 void read_input(std::string file_name) {
     std::ifstream input_stream(file_name);
     int v1, v2;
     int count = 0;
     while (input_stream >> v1 >> v2) {
-        if (remapped_vertices.find(v1) == remapped_vertices.end()) {
-            graph.emplace_back(std::vector<int>());
-            read_remapped.push_back(v1);
-            remapped_vertices[v1] = count++;
-        }
-
-        if (remapped_vertices.find(v2) == remapped_vertices.end()) {
-            graph.emplace_back(std::vector<int>());
-            read_remapped.push_back(v2);
-            remapped_vertices[v2] = count++;
-        }
+        handle_vertex(v1, &count);
+        handle_vertex(v2, &count);
 
         if (non_dead_end_vertices.find(remapped_vertices[v1]) == non_dead_end_vertices.end()) {
             non_dead_end_vertices.insert(remapped_vertices[v1]);
+            vertices_to_process.push(remapped_vertices[v1]);
         }
 
         graph[remapped_vertices[v1]].push_back(remapped_vertices[v2]);
     }
-    vertices_count = count;
 
     input_stream.close();
 }
