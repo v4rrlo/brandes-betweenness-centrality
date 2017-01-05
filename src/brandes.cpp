@@ -14,12 +14,18 @@
 #include "brandes.h"
 
 unsigned int threads_count;
-std::unordered_map<int, std::vector<int>> graph;
+//std::unordered_map<int, std::vector<int>> graph;
+//std::unordered_map<int, double> betweenness_centrality;
+
 std::set<int> non_dead_end_vertices;
-std::unordered_map<int, double> betweenness_centrality;
+std::vector<double> betweenness_centrality;
 std::mutex vertices_queue_mutex;
 std::mutex result_update_mutex;
 std::queue<int> vertices_to_process;
+std::unordered_map<int, int> remapped_vertices;
+std::vector<std::vector<int>> graph;
+std::vector<int> read_remapped;
+int vertices_count = 0;
 
 int main(int argc, char *argv[]) {
     if (argc != 4) {
@@ -36,7 +42,9 @@ int main(int argc, char *argv[]) {
     std::string output_file_path = argv[3];
 
     read_input(input_file_path);
+
     for (auto v : non_dead_end_vertices) {
+        betweenness_centrality.push_back(0);
         vertices_to_process.push(v);
     }
 
@@ -57,8 +65,8 @@ int main(int argc, char *argv[]) {
 void brandes_algorithm() {
     std::unordered_map<int, double> betweenness_centrality_local;
 
-    for (auto v : graph) {
-        betweenness_centrality_local[v.first] = 0;
+    for (int i = 0; i < vertices_count; i++) {
+        betweenness_centrality_local[i] = 0;
     }
 
     while (!vertices_to_process.empty()) {
@@ -76,24 +84,33 @@ void brandes_algorithm() {
 
     {
         std::lock_guard<std::mutex> lock(result_update_mutex);
-        for (auto v : graph) {
-            betweenness_centrality[v.first] += betweenness_centrality_local[v.first];
+        for (int i = 0; i < vertices_count; i++) {
+            betweenness_centrality[i] += betweenness_centrality_local[i];
         }
     }
 }
 
 void perform_brandes_computing(int node_id, std::unordered_map<int, double> *betweenness_centrality_local) {
     std::stack<int>                             S;
-    std::unordered_map<int, std::vector<int>>   predecessors;
-    std::unordered_map<int, int>                number_of_shortest_paths;
-    std::unordered_map<int, int>                distance_to;
-    std::unordered_map<int, double>             dependency;
+    //std::unordered_map<int, std::vector<int>>   predecessors;
+    //std::unordered_map<int, int>                number_of_shortest_paths;
+    //std::unordered_map<int, int>                distance_to;
+    //std::unordered_map<int, double>             dependency;
 
-    for (auto v : graph) {
-        predecessors[v.first] = std::vector<int>();
-        number_of_shortest_paths[v.first] = 0;
-        distance_to[v.first] = -1;
-        dependency[v.first] = 0.0;
+    std::vector<std::vector<int>> predecessors;
+    std::vector<int> number_of_shortest_paths;
+    std::vector<int> distance_to;
+    std::vector<double> dependency;
+
+    for (int i = 0; i < vertices_count; i++) {
+//        predecessors[v.first] = std::vector<int>();
+//        number_of_shortest_paths[v.first] = 0;
+//        distance_to[v.first] = -1;
+//        dependency[v.first] = 0.0;
+        predecessors.emplace_back(std::vector<int>());
+        number_of_shortest_paths.push_back(0);
+        distance_to.push_back(-1);
+        dependency.push_back(0.0);
     }
 
     number_of_shortest_paths[node_id] = 1;
@@ -137,16 +154,32 @@ void perform_brandes_computing(int node_id, std::unordered_map<int, double> *bet
 
 
 void read_input(std::string file_name) {
+
+
     std::ifstream input_stream(file_name);
     int v1, v2;
+
+    int count = 0;
     while (input_stream >> v1 >> v2) {
-        if (non_dead_end_vertices.find(v1) == non_dead_end_vertices.end()) {
-            non_dead_end_vertices.insert(v1);
+        if (remapped_vertices.find(v1) == remapped_vertices.end()) {
+            graph.emplace_back(std::vector<int>());
+            read_remapped.push_back(v1);
+            remapped_vertices[v1] = count++;
         }
 
-        graph[v1].push_back(v2);
-        graph[v2];
+        if (remapped_vertices.find(v2) == remapped_vertices.end()) {
+            read_remapped.push_back(v2);
+            graph.emplace_back(std::vector<int>());
+            remapped_vertices[v2] = count++;
+        }
+
+        if (non_dead_end_vertices.find(v1) == non_dead_end_vertices.end()) {
+            non_dead_end_vertices.insert(remapped_vertices[v1]);
+        }
+
+        graph[remapped_vertices[v1]].push_back(remapped_vertices[v2]);
     }
+    vertices_count = count;
 
     input_stream.close();
 }
@@ -156,7 +189,7 @@ void write_results(std::string file_name) {
     output_file.open(file_name);
 
     for (auto v : non_dead_end_vertices) {
-        output_file << v << " " << betweenness_centrality[v] << std::endl;
+        output_file << read_remapped[v] << " " << betweenness_centrality[v] << std::endl;
     }
 
     output_file.close();
